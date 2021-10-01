@@ -1,0 +1,25 @@
+{
+  "name": "skrybe-esl-service",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/faker": "5.5.8",
+    "@types/jest": "27.0.2",
+    "@types/node": "16.10.2",
+    "faker": "5.5.3",
+    "jest": "27.2.4",
+    "ts-jest": "27.0.5",
+    "typescript": "4.4.3"
+  },
+  "scripts": {
+    "build": "rm -rf ./build && tsc",
+    "test": "jest --passWithNoTests --watch"
+  },
+  "author": "Tomasz Jamróg <eatthatpie.dev@gmail.com>",
+  "license": "ISC"
+}
