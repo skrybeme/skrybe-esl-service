@@ -21,8 +21,17 @@ describe('POST subscription', () => {
   });
 
   describe('error path', () => {
-    describe('unprocessable entity', () => {
-      xit('responds with status 422 UNPROCESSABLE ENTITY', (done) => {
+    describe('invalid email format', () => {
+      xit('responds with status 422 UNPROCESSABLE ENTITY and proper error type', (done) => {
+        request(app)
+          .post('/')
+          .send(' invalid@email.com ')
+          .expect(422, done);
+      });
+    });
+
+    describe('confirmation email sending failure', () => {
+      xit('responds with status 422 UNPROCESSABLE ENTITY and proper error type', (done) => {
         request(app)
           .post('/')
           .send(' invalid@email.com ')
