@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { internet } from 'faker';
-import { createServer } from '../../src/server';
+import { createServer } from '../../src/http/server';
 
 const app = createServer();
 

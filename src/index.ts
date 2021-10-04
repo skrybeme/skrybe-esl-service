@@ -1,5 +1,8 @@
-import { createServer } from './server';
+import { createServer } from './http/server';
+import { config } from './config/config';
 
 const server = createServer();
 
-server.listen(3000);
+server.listen(config.server.port, () => {
+  console.log(`Server running on port ${config.server.port}`);
+});
