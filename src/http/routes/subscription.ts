@@ -3,10 +3,8 @@ import controller from '../controllers/subscription';
 
 const router = express.Router();
 
-router.delete('/subscription', (req: express.Request, res: express.Response) => {
-  controller.handleDelete(req);
-});
+router.delete('/subscription', controller.handleDelete);
 
-router.post('/subscription', (req: express.Request, res: express.Response) => {
-  controller.handleInsert(req);
-});
+router.post('/subscription', controller.handleInsert);
+
+export default router;
