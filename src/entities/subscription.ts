@@ -1,5 +1,11 @@
+import { generateRandomHash } from '../common/utils';
+
 export class Subscription {
-  private constructor(private _props: SubscriptionProps, private _id?: string) {}
+  private _token: string;
+
+  private constructor(private _props: SubscriptionProps, private _id?: string) {
+    this._token = _props.token || generateRandomHash(32);
+  }
 
   static create(props: SubscriptionProps, id?: string): Subscription {
     if (!isValidEmail(props.email)) {
@@ -16,10 +22,15 @@ export class Subscription {
   get id() {
     return this._id;
   }
+
+  get token() {
+    return this._token;
+  }
 }
 
 export interface SubscriptionProps {
   email: string;
+  token?: string;
 }
 
 export class InvalidEntity extends Error {

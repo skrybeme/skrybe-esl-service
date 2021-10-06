@@ -30,5 +30,24 @@ describe('Subscription', () => {
       expect(subscriptionWithId.email).toEqual('test@email.com');
       expect(subscriptionWithId.id).toEqual(id);
     });
+
+    it('creates with random and unique token of 64 characters', () => {
+      const subscription1 = Subscription.create({ email: 'test1@email.com' });
+      const subscription2 = Subscription.create({ email: 'test2@email.com' });
+
+      expect(subscription1.token).toHaveLength(64);
+      expect(subscription2.token).toHaveLength(64);
+
+      expect(subscription1.token).not.toEqual(subscription2.token)
+    });
+
+    it('creates with given token', () => {
+      const subscription1 = Subscription.create({
+        email: 'test@email.com',
+        token: 'test-token'
+      });
+
+      expect(subscription1.token).toEqual('test-token')
+    });
   });
 });

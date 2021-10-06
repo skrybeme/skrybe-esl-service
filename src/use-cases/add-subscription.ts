@@ -1,15 +1,6 @@
-import { AsyncNullable, Nullable } from '../common/types';
 import { Subscription } from '../entities/subscription';
-
-export interface ISubscriptionDataSource {
-  findByEmail: (email: string) => AsyncNullable<Subscription>;
-  removeById: (id: string) => Promise<any>;
-  save: (subscription: Subscription) => AsyncNullable<Subscription>;
-}
-
-export interface IEmailService {
-  notifyAboutSubscription: (subscription: Subscription) => Promise<any>;
-}
+import { IEmailService } from './interfaces/email-service';
+import { ISubscriptionDataSource } from './interfaces/subscription-data-source';
 
 export type AddSubcription = (email: string) => Promise<Subscription>;
 
@@ -26,32 +17,15 @@ export function createAddSubscriptionUseCase(
 
     const subscription = Subscription.create({ email });
 
-    let persistedSubscription: Nullable<Subscription>;
+    const persistedSubscription = await dataSource.save(subscription);
 
-    try {
-      persistedSubscription = await dataSource.save(subscription);
-    } catch (e) {
-      // @TODO Log error.
-      return Promise.reject(DataSourceFailure);
-    }
+    const notificationResult
+      = await emailService.notifyAboutSubscription(persistedSubscription);
 
-    if (!persistedSubscription || !persistedSubscription.id) {
-      return Promise.reject(DataSourceFailure);
-    }
+    if (!notificationResult) {
+      await dataSource.removeById(persistedSubscription.id!);
 
-    try {
-      // @TODO This is a great action to call from an event (subscription added) listener.
-      const notificationResult
-        = await emailService.notifyAboutSubscription(persistedSubscription);
-
-      if (!notificationResult) {
-        await dataSource.removeById(persistedSubscription.id);
-
-        return Promise.reject(EmailServiceFailure);
-      }
-    } catch (e) {
-      // @TODO Log error.
-      return Promise.reject(DataSourceFailure);
+      return Promise.reject(UnreachableEmailAddress);
     }
 
     return Promise.resolve(persistedSubscription);
@@ -66,18 +40,10 @@ export class EmailAlreadyExists extends Error {
   }
 }
 
-export class DataSourceFailure extends Error {
+export class UnreachableEmailAddress extends Error {
   constructor() {
     super();
 
-    Object.setPrototypeOf(this, DataSourceFailure.prototype);
-  }
-}
-
-export class EmailServiceFailure extends Error {
-  constructor() {
-    super();
-
-    Object.setPrototypeOf(this, EmailServiceFailure.prototype);
+    Object.setPrototypeOf(this, UnreachableEmailAddress.prototype);
   }
 }

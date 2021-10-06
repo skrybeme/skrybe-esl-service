@@ -1,50 +1,18 @@
-import { datatype, internet } from 'faker';
+import { internet } from 'faker';
 import { Subscription } from '../../../src/entities/subscription';
 import {
   createAddSubscriptionUseCase,
-  DataSourceFailure,
   EmailAlreadyExists,
-  IEmailService,
-  ISubscriptionDataSource
+  UnreachableEmailAddress,
 } from '../../../src/use-cases/add-subscription';
-
-interface InMemoryDataSourceFactoryProps {
-  findByEmailImplementation?: ISubscriptionDataSource['findByEmail'];
-}
-
-const createInMemoryDataSource: (props?: InMemoryDataSourceFactoryProps) => ISubscriptionDataSource & { subscription: () => Subscription }
-  = (props) => {
-    let _subscription: Subscription;
-
-    return {
-      findByEmail: props?.findByEmailImplementation
-        ? props.findByEmailImplementation
-        : async (_: string) => {
-          return Promise.resolve(null);
-        },
-      removeById: async (_: string) => {
-        return Promise.resolve(true);
-      },
-      save: async (subscription: Subscription) => {
-        _subscription = Subscription.create({ email: subscription.email }, datatype.uuid());
-
-        return Promise.resolve(_subscription);
-      },
-      subscription: () => _subscription
-    }
-  }
-
-const createInMemoryEmailService: () => IEmailService = () => {
-  return {
-    notifyAboutSubscription: (_: Subscription) => {
-      return Promise.resolve(true);
-    }
-  }
-}
+import { createInMemoryEmailService } from '../../mocks/in-memory-email-service';
+import {
+  createInMemorySubscriptionDataSource
+} from '../../mocks/in-memory-subscription-data-source';
 
 describe('AddSubscription', () => {
   describe('happy path', () => {
-    const inMemoryDataSource = createInMemoryDataSource();
+    const inMemoryDataSource = createInMemorySubscriptionDataSource();
     const inMemoryEmailService = createInMemoryEmailService();
 
     const addSubscription = createAddSubscriptionUseCase(
@@ -59,7 +27,7 @@ describe('AddSubscription', () => {
     it('saves new record to repository', async () => {
       await addSubscription(email);
 
-      expect(inMemoryDataSource.subscription().email).toEqual(email);
+      expect(inMemoryDataSource.subscription()?.email).toEqual(email);
     });
 
     it('notifies the subscriber with an email', () => {
@@ -72,8 +40,8 @@ describe('AddSubscription', () => {
     describe('subscription already exists in data source', () => {
       const email = internet.email();
 
-      const inMemoryDataSource = createInMemoryDataSource({
-        findByEmailImplementation: async (_: string) => {
+      const inMemoryDataSource = createInMemorySubscriptionDataSource({
+        findByEmail: async (_: string) => {
           return Promise.resolve(Subscription.create({ email }));
         }
       });
@@ -87,24 +55,25 @@ describe('AddSubscription', () => {
         await expect(addSubscription(email)).rejects.toEqual(EmailAlreadyExists);
       });
     });
-  });
-
-  describe('infra failures', () => {
-    describe('data source error on record fetching', () => {
-      it.todo('rejects with DataSourceFailure error');
-    });
-
-    describe('data source error on record persisting', () => {
-      it.todo('rejects with DataSourceFailure error');
-    });
 
     describe('email service error on email sending', () => {
-      it.todo('rejects with EmailServiceFailure error');
+      const email = internet.email();
 
-      it.todo('deletes subscription (record) from repository');
+      const inMemoryDataSource = createInMemorySubscriptionDataSource();
 
-      describe('data source error on record deletion', () => {
-        it.todo('rejects with EmailServiceAndDataSourceFailure error');
+      const addSubscription = createAddSubscriptionUseCase(
+        inMemoryDataSource,
+        createInMemoryEmailService({
+          notifyAboutSubscription: async () => Promise.resolve(false)
+        })
+      );
+
+      it('rejects with UnreachableEmailAddress error', async () => {
+        await expect(addSubscription(email)).rejects.toEqual(UnreachableEmailAddress);
+      });
+
+      it('deletes subscription (record) from repository', () => {
+        expect(inMemoryDataSource.subscription()).toBeNull();
       });
     });
   });
