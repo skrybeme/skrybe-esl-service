@@ -8,9 +8,13 @@ export class ConsoleLoggerOutput implements ILoggerOutput {
     switch (type) {
       case LogType.DEB: {
         console.log(compactMessage);
+
+        return;
       }
       case LogType.ERR: {
         console.error(compactMessage);
+
+        return;
       }
       case LogType.WRN: {
         console.warn(compactMessage);

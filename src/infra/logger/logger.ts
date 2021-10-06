@@ -1,4 +1,4 @@
-import { EOL } from 'common/utils';
+import { EOL } from '../../common/utils';
 import { LogData, LogType } from './types';
 
 export interface ILoggerOutput {
@@ -12,8 +12,14 @@ export interface LoggerProps {
 export class Logger {
   constructor(private _props: LoggerProps) {}
 
+  private flush(logData: LogData): void {
+    this._props.output.forEach((output) => {
+      output.flush(this.makeCompactMessage(logData), logData);
+    });
+  }
+
   private makeCompactMessage(logData: LogData): string {
-    return `[${logData.type}] ${logData.date.toUTCString()} ${logData.namespace ? `${logData.namespace}: ` : ' '}${logData.message}${EOL}`;
+    return `[${logData.date.toUTCString()}] [${logData.type}] ${logData.namespace ? `[${logData.namespace}] ` : ''}[${logData.message}]`;
   }
 
   error(message: string, namespace?: string) {
@@ -24,9 +30,7 @@ export class Logger {
       type: LogType.ERR,
     };
 
-    this._props.output.forEach((output) => {
-      output.flush(this.makeCompactMessage(logDdata), logDdata);
-    });
+    this.flush(logDdata);
   }
 
   log(message: string, namespace?: string) {
@@ -37,9 +41,7 @@ export class Logger {
       type: LogType.DEB,
     };
 
-    this._props.output.forEach((output) => {
-      output.flush(this.makeCompactMessage(logDdata), logDdata);
-    });
+    this.flush(logDdata);
   }
 
   warning(message: string, namespace?: string) {
@@ -50,8 +52,6 @@ export class Logger {
       type: LogType.WRN,
     };
 
-    this._props.output.forEach((output) => {
-      output.flush(this.makeCompactMessage(logDdata), logDdata);
-    });
+    this.flush(logDdata);
   }
 }

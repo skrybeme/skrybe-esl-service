@@ -1,10 +1,16 @@
 import express from 'express';
+import { logger } from '../../infra';
 
 export const loggerMiddleware = () => (
   req: express.Request,
-  _: express.Response,
+  res: express.Response,
   next: express.NextFunction
 ) => {
-  console.log(req.url);
+  logger.log(`REQ ${req.method} ${req.url}`);
+
+  res.on('finish', () => {
+    logger.log(`RES ${req.method} ${req.url} ${res.statusCode}`);
+  });
+  
   next();
 }

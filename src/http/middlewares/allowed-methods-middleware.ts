@@ -11,6 +11,8 @@ export const allowedMethodsMiddleware = () => (
     res.status(405).json({
       type: 'method_not_allowed'
     });
+
+    return;
   }
 
   next();
