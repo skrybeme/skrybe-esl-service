@@ -12,7 +12,7 @@ export function createAddSubscriptionUseCase(
     const record = await dataSource.findByEmail(email);
 
     if (record) {
-      return Promise.reject(EmailAlreadyExists);
+      return Promise.reject(new EmailAlreadyExists());
     }
 
     const subscription = Subscription.create({ email });
@@ -25,7 +25,7 @@ export function createAddSubscriptionUseCase(
     if (!notificationResult) {
       await dataSource.removeById(persistedSubscription.id!);
 
-      return Promise.reject(UnreachableEmailAddress);
+      return Promise.reject(new UnreachableEmailAddress());
     }
 
     return Promise.resolve(persistedSubscription);

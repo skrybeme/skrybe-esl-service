@@ -1,5 +1,12 @@
 export class ErrorResponse {
-  constructor(public type: string = '') {}
+  constructor(public type: string = '', public message: string = '') {}
+
+  toJSON() {
+    return {
+      message: this.message,
+      type: this.type
+    };
+  }
 }
 
 export class NotFoundErrorResponse extends ErrorResponse {
@@ -27,8 +34,8 @@ export class ConfirmationEmailSendingFailureErrorResponse extends ErrorResponse 
 }
 
 export class InternalServerErrorResponse extends ErrorResponse {
-  constructor() {
-    super('internal_server_error');
+  constructor(message: string = '') {
+    super('internal_server_error', message);
   }
 }
 

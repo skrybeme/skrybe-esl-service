@@ -10,7 +10,7 @@ export function createDeleteSubscriptionUseCase(
     const removedRecord = await dataSource.removeByToken(token);
 
     if (!removedRecord) {
-      return Promise.reject(SubscriptionTokenNotFound);
+      return Promise.reject(new SubscriptionTokenNotFound());
     }
 
     return Promise.resolve(removedRecord);

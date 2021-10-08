@@ -52,9 +52,11 @@ const handleInsert = async (req: express.Request, res: express.Response) => {
         .status(StatusCodes.UNPROCESSABLE_ENTITY)
         .json(new ConfirmationEmailSendingFailureErrorResponse());
     } else {
+      const message = (e as Error).message || (e as Error).stack || e;
+
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json(new InternalServerErrorResponse());
+        .json(new InternalServerErrorResponse(message as string));
     }
   }
 }

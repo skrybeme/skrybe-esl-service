@@ -1,27 +1,55 @@
 import request from 'supertest';
 import { internet } from 'faker';
 import { createServer } from '../../src/http/server';
+import {
+  EmailAlreadyTakenErrorResponse,
+  WrongEmailAddressFormatErrorResponse
+} from '../../src/http/error-responses';
+import { requestCallbackHandler } from '../helpers';
+import { mongoDbSubscriptionDataSource } from '../../src/container';
+import {
+  SubscriptionMongoDbModel
+} from '../../src/infra/database/mongodb/models/subscription-mongodb-model';
 
 const app = createServer();
 
-describe('POST subscription', () => {
+describe('POST /esl/subscription', () => {
   const email = internet.email();
 
-  describe('happy path', () => {
-    it.todo('responds with status 201 CREATED');
+  afterAll(async () => {
+    await SubscriptionMongoDbModel.deleteOne({ email });
+  });
 
-    it.todo('persists the subscription in the repository');
+  describe('happy path', () => {
+    it('responds with status 201 CREATED', (done) => {
+      request(app)
+        .post('/esl/subscription')
+        .set('Content-type', 'text/plain')
+        .send(email)
+        .expect(201, requestCallbackHandler(done));
+    });
+
+    it('persists the subscription in the repository', async () => {
+      const record = await mongoDbSubscriptionDataSource.findByEmail(email)
+
+      expect(record?.email).toEqual(email);
+    });
 
     it.todo('sends email notification via email service');
   });
 
   describe('error path', () => {
     describe('invalid email format', () => {
-      xit('responds with status 422 UNPROCESSABLE ENTITY and proper error type', (done) => {
+      it('responds with status 422 UNPROCESSABLE ENTITY and proper error type', (done) => {
         request(app)
-          .post('/')
-          .send(' invalid@email.com ')
-          .expect(422, done);
+          .post('/esl/subscription')
+          .set('Content-type', 'text/plain')
+          .send('invalidemail.com')
+          .expect(422)
+          .expect(
+            new WrongEmailAddressFormatErrorResponse().toJSON(),
+            requestCallbackHandler(done)
+          );
       });
     });
 
@@ -35,11 +63,16 @@ describe('POST subscription', () => {
     });
 
     describe('email already taken', () => {
-      xit('responds with status 409 CONFLICT', (done) => {
+      it('responds with status 409 CONFLICT', (done) => {
         request(app)
-          .post('/')
+          .post('/esl/subscription')
+          .set('Content-type', 'text/plain')
           .send(email)
-          .expect(409, done);
+          .expect(409)
+          .expect(
+            new EmailAlreadyTakenErrorResponse().toJSON(),
+            requestCallbackHandler(done)
+          );
       });
     });
   });
