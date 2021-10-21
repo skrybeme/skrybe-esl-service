@@ -3,13 +3,16 @@ import { internet } from 'faker';
 import { createServer } from '../../src/http/server';
 import {
   EmailAlreadyTakenErrorResponse,
+  InternalServerErrorResponse,
   WrongEmailAddressFormatErrorResponse
 } from '../../src/http/error-responses';
 import { requestCallbackHandler } from '../helpers';
-import { mongoDbSubscriptionDataSource } from '../../src/container';
 import {
   SubscriptionMongoDbModel
 } from '../../src/infra/database/mongodb/models/subscription-mongodb-model';
+import {
+  mongoDbSubscriptionDataSource
+} from '../../src/infra/database/mongodb/mongodb-subscription-data-source';
 
 const app = createServer();
 
@@ -78,8 +81,27 @@ describe('POST /esl/subscription', () => {
   });
 
   describe('infra failures', () => {
+    const unexpectedErrorMessage = `WHY CAN'T YOU CUST BE NORMAL?! *Screams in 2020*`;
+
     describe('data source error on record fetching', () => {
-      it.todo('rejects with DataSourceFailure error');
+      it('responds with status 500 INTERNAL_SERVER_ERROR', (done) => {
+        const findByEmailMock = jest.spyOn(mongoDbSubscriptionDataSource, 'findByEmail')
+          .mockImplementation(() => {
+            throw new Error(unexpectedErrorMessage);
+          });
+
+        request(app)
+          .post('/esl/subscription')
+          .set('Content-type', 'text/plain')
+          .send(internet.email())
+          .expect(500)
+          .expect(
+            new InternalServerErrorResponse().toJSON(),
+            requestCallbackHandler(done)
+          );
+
+        findByEmailMock.mockRestore();
+      });
     });
 
     describe('data source error on record persisting', () => {

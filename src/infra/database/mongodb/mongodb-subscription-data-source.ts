@@ -6,7 +6,7 @@ import {
 import { SubscriptionMap } from './mappers/subscription-map';
 import { SubscriptionMongoDbModel } from './models/subscription-mongodb-model';
 
-export class MongoDbSubscriptionDataSource implements ISubscriptionDataSource {
+class MongoDbSubscriptionDataSource implements ISubscriptionDataSource {
   async findByEmail(email: string): Promise<Nullable<Subscription>> {
     const record = await SubscriptionMongoDbModel.findOne({ email });
 
@@ -45,3 +45,5 @@ export class MongoDbSubscriptionDataSource implements ISubscriptionDataSource {
     return Promise.resolve(SubscriptionMap.toDomain(record));
   }
 }
+
+export const mongoDbSubscriptionDataSource = new MongoDbSubscriptionDataSource();
