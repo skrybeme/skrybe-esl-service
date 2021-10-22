@@ -19,6 +19,8 @@ export function createAddSubscriptionUseCase(
 
     const persistedSubscription = await dataSource.save(subscription);
 
+    // @TODO
+    // This could be handled as a domain event, or at least work in non-blocking way.
     const notificationResult
       = await emailService.notifyAboutSubscription(persistedSubscription);
 

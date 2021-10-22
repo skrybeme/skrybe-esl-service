@@ -6,15 +6,15 @@ import {
   createDeleteSubscriptionUseCase,
   DeleteSubscription
 } from './use-cases/delete-subscription';
-import { createInMemoryEmailService } from '../test/mocks/in-memory-email-service';
 import {
   mongoDbSubscriptionDataSource
 } from './infra/database/mongodb/mongodb-subscription-data-source';
 import './infra/database/mongodb/mongodb-loader';
+import { sendgridEmailService } from './infra/email-service/sendgrid/sendgrid-email-service';
 
 export const addSubscriptionUseCase: AddSubcription = createAddSubscriptionUseCase(
   mongoDbSubscriptionDataSource,
-  createInMemoryEmailService()
+  sendgridEmailService
 );
 
 export const deleteSubscriptionUseCase: DeleteSubscription
