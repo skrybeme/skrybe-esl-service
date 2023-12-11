@@ -17,6 +17,7 @@ import { InvalidEntity } from '../../entities/subscription';
 
 const handleDelete = async (req: express.Request, res: express.Response) => {
   try {
+    // TODO Handle request dto validation.
     await deleteSubscriptionUseCase(req.body)
 
     res.status(StatusCodes.NO_CONTENT).end();
@@ -35,6 +36,7 @@ const handleDelete = async (req: express.Request, res: express.Response) => {
 
 const handleInsert = async (req: express.Request, res: express.Response) => {
   try {
+    // TODO Handle request dto validation.
     await addSubscriptionUseCase(req.body)
 
     res.status(StatusCodes.CREATED).end();
